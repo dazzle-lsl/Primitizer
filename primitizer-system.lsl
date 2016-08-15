@@ -68,13 +68,22 @@ Help
 
 */
 // Define A List Containing All The Possible Menu Buttons
-list PRIMITIZER_SYSTEM = ["Options","Functions","Help"];
 
+
+list SYSTEM_MENU_BUTTONS = ["Options","Functions","Help"];
+list SYSTEM_MENU_COMMANDS = [];
+list SYSTEM_MENU_ID_NAMES = [];
+list SYSTEM_MENU_RETURNS = ["MENU_OPTIONS", "MENU_FUNCTIONS", "MENU_HELP"];
 // returns
 // commands
 
 
 /* Help Menu */
+list HELP_MENU_BUTTONS = ["Updates","Read Me","Contact", "Tutorial", "About", "Website"];
+list HELP_MENU_COMMANDS = [];
+list HELP_MENU_ID_NAMES = [];
+list HELP_MENU_RETURNS = ["MENU_OPTIONS","MENU_FUNCTIONS","MENU_HELP"];
+
 /*
 What would you like to do?
 
@@ -86,6 +95,10 @@ What would you like to do?
 * Website
 */
 /* Tutorial */
+list TUTORIAL_MENU_BUTTONS = ["Yes", "No", "Back"];
+list TUTORIAL_MENU_COMMANDS = [];
+list TUTORIAL_MENU_ID_NAMES = [];
+list TUTORIAL_MENU_RETURNS = ["MENU_OPTIONS","MENU_FUNCTIONS","MENU_HELP"];
 
 /*
 Would You Like To Enable Tutorial Tips?
@@ -115,7 +128,7 @@ string BUTTON_BACK = "◄ Back";
 string BUTTON_NEXT = "Next ►";
 
 /*
-[07:48] Object: PRIMITIZER_SYSTEM:SUB_3_1#SUB_3_2#SUB_3_3#MAIN MENU#SUB_2#BUTTON_X
+[07:48] Object: SYSTEM_MENU_BUTTONS:SUB_3_1#SUB_3_2#SUB_3_3#MAIN MENU#SUB_2#BUTTON_X
 [07:48] Object: DIALOG_MENU_RETURNS:3.1#3.2#3.3#MENU_MainMenu#MENU_SubMenu2#EXIT
 [07:48] Object: DIALOG_MENU_ID_NAMES:MainMenu#SubMenu1#SubMenu2#SubMenu3
 [07:48] Object: DIALOG_MENU_COMMANDS:Main Menu Dialog Message||30||BUTTON_1||MENU_SubMenu1||BUTTON_2||MENU_SubMenu2||BUTTON_3||MENU_SubMenu3||Debug||Debug||Textbox||Textbox||Numberbox||Numeric||BUTTON_X||EXIT#Sub Menu 1 Dialog Message||30||SUB_1_1||1.1||SUB_1_2||1.2||SUB_1_3||1.3||MAIN MENU||MENU_MainMenu||SUB_3||MENU_SubMenu3||BUTTON_X||EXIT#Sub Menu 2 Dialog Message||30||SUB_2_1||2.1||SUB_2_2||2.2||SUB_2_3||2.3||MAIN MENU||MENU_MainMenu||SUB_1||MENU_SubMenu1||BUTTON_X||EXIT#Sub Menu 3 Dialog Message||30||SUB_3_1||3.1||SUB_3_2||3.2||SUB_3_3||3.3||MAIN MENU||MENU_MainMenu||SUB_2||MENU_SubMenu2||BUTTON_X||EXIT
@@ -210,7 +223,7 @@ list pagination(list items, string direction)
         {
             // we can fill another dialog with PREV and NEXT buttons, so
             // this is just another regular cycle (with DIALOG_MAX_BUTTONS - 3) to ensure that
-            // the total number of items pulled from PRIMITIZER_SYSTEM is actually equal to
+            // the total number of items pulled from SYSTEM_MENU_BUTTONS is actually equal to
             // (DIALOG_MAX_BUTTONS - 2)
             sublist = llList2List(items, start_index, start_index + (DIALOG_MAX_BUTTONS - 3));
 
@@ -247,7 +260,7 @@ integer create_dialog(key id, string message, list buttons)
 
 clear_dialog()
 {
-    PRIMITIZER_SYSTEM = [];
+    SYSTEM_MENU_BUTTONS = [];
 }
 
 add_dialog(string name, string message, list buttons, list returns, integer timeout)
@@ -269,6 +282,10 @@ response_dialog(integer sender_num, integer num, string str, key id)
 {
 	list data = llParseString2List(str, [PRIMITIZER_SEPERATOR], []);
 	link_debugged(sender_num, num, str, id);
+    if(num == LINK_INTERFACE_DIALOG)
+    {
+		//
+	}
 }
 
 request_dialog(integer sender_num, integer num, string str, key id)
@@ -298,14 +315,14 @@ request_dialog(integer sender_num, integer num, string str, key id)
 	}
 }
 
-integer show_dialog(string name, key id)
+integer show_dialog(integer link, list buttons, list returns, string name, key id)
 {
     if (name != "")
     {
-        integer index = llListFindList(PRIMITIZER_SYSTEM, [name]);
+        integer index = llListFindList(buttons, [name]);
         if (index != -1)
         {
-            llMessageLinked(LINK_THIS, LINK_INTERFACE_DIALOG, llList2String(PRIMITIZER_SYSTEM, index), id);
+            llMessageLinked(LINK_THIS, link, llList2String(returns, index), id); //LINK_INTERFACE_DIALOG
             return TRUE;
         }
         else
@@ -323,13 +340,24 @@ integer show_dialog(string name, key id)
     }
 }
 
+state Redirect
+{
+    state_entry()
+    {
+        if(REDIRECT_STATE == "Dialog") state Dialog;
+        else if(REDIRECT_STATE == "Textbox") state Textbox;
+        else if(REDIRECT_STATE == "Numeric") state Numeric;
+        else state default;
+    }
+}
+
 default
 {
     state_entry()
     {
         // Listen On The Specified Channel And Display Dialog
         // @TODO Remove This Later
-        PRIMITIZER_CHANNEL = create_dialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(PRIMITIZER_SYSTEM, ""));
+        PRIMITIZER_CHANNEL = create_dialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""));
     }
 
     changed(integer change)
@@ -356,27 +384,27 @@ default
 			{
 				// user clicked the BUTTON_NEXT option, so get the next
 				// cycle of menu items
-				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(PRIMITIZER_SYSTEM, BUTTON_NEXT));
+				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_NEXT));
 				//llSetTimerEvent(timerOut);
 			}
 			else if(message == BUTTON_BACK)
 			{
 				// user clicked the BUTTON_BACK option, so get the previous
 				// cycle of menu items
-				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(PRIMITIZER_SYSTEM, BUTTON_BACK));
+				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_BACK));
 				//llSetTimerEvent(timerOut);
 			}
 			else if(message == " ")
 			{
 				// user clicked the BUTTON_BACK option, so get the previous
 				// cycle of menu items
-				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(PRIMITIZER_SYSTEM, ""));
+				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""));
 				//llSetTimerEvent(timerOut);
 			}
 			else
 			{
-				integer index = llListFindList(PRIMITIZER_SYSTEM, [message]);
-				llMessageLinked(LINK_THIS, LINK_INTERFACE_RESPONSE, llList2String(PRIMITIZER_SYSTEM, index), id);
+				integer index = llListFindList(SYSTEM_MENU_BUTTONS, [message]);
+				llMessageLinked(LINK_THIS, LINK_INTERFACE_RESPONSE, llList2String(SYSTEM_MENU_BUTTONS, index), id);
 			}
 		}
     }
@@ -387,7 +415,7 @@ default
         if(llDetectedKey(0) == llGetOwner())
         {
             // display the dialog with the current menu cycle
-            PRIMITIZER_CHANNEL = create_dialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(PRIMITIZER_SYSTEM, ""));
+            PRIMITIZER_CHANNEL = create_dialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""));
         }
     }
 }
