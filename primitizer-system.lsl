@@ -69,24 +69,19 @@ Help
 */
 // Define A List Containing All The Possible Menu Buttons
 
-
-list SYSTEM_MENU_BUTTONS = ["Options","Functions","Help"];
-list SYSTEM_MENU_COMMANDS = [];
-list SYSTEM_MENU_ID_NAMES = [];
-list SYSTEM_MENU_RETURNS = ["MENU_OPTIONS", "MENU_FUNCTIONS", "MENU_HELP"];
+list SYSTEM_MENU_BUTTONS = ["Options", "Functions", "Help"];
+list SYSTEM_MENU_RETURNS = ["SYSTEM_OPTIONS", "SYSTEM_FUNCTIONS", "SYSTEM_HELP"];
 // returns
 // commands
 
 
 /* Help Menu */
-list HELP_MENU_BUTTONS = ["Updates","Read Me","Contact", "Tutorial", "About", "Website"];
-list HELP_MENU_COMMANDS = [];
-list HELP_MENU_ID_NAMES = [];
-list HELP_MENU_RETURNS = ["MENU_OPTIONS","MENU_FUNCTIONS","MENU_HELP"];
+list HELP_MENU_BUTTONS = ["Updates", "Read Me", "Contact", "Tutorial", "About", "Website"];
+list HELP_MENU_RETURNS = ["HELP_UPDATES","HELP_README","HELP_CONTACT", "HELP_Tutorial", "HELP_ABOUT", "HELP_WEBSITE"];
 
 /*
 What would you like to do?
-
+tutorial
 * Updates
 * Read Me
 * Contact
@@ -96,8 +91,6 @@ What would you like to do?
 */
 /* Tutorial */
 list TUTORIAL_MENU_BUTTONS = ["Yes", "No", "Back"];
-list TUTORIAL_MENU_COMMANDS = [];
-list TUTORIAL_MENU_ID_NAMES = [];
 list TUTORIAL_MENU_RETURNS = ["MENU_OPTIONS","MENU_FUNCTIONS","MENU_HELP"];
 
 /*
@@ -246,18 +239,6 @@ list pagination(list items, string direction)
     return sort(sublist);
 }
 
-integer create_dialog(key id, string message, list buttons)
-{
-    integer PRIMITIZER_CHANNEL = -((integer)llFrand(8388608))*(255) - (integer)llFrand(8388608) - 11;
-    llListenRemove(PRIMITIZER_HANDLE);
-    PRIMITIZER_HANDLE = llListen(PRIMITIZER_CHANNEL, "", id, "");
-    if(DIALOG_ITEMS_COUNT > 0)
-        llDialog(id, message, buttons, PRIMITIZER_CHANNEL);
-    else
-        llTextBox(id, message, PRIMITIZER_CHANNEL);
-    return PRIMITIZER_CHANNEL;
-}
-
 clear_dialog()
 {
     SYSTEM_MENU_BUTTONS = [];
@@ -275,7 +256,7 @@ link_debugged(integer sender_num, integer num, string str, key id)
 	message += "num = " + (string)num + "\n";
 	message += "str = " + (string)str + "\n";
 	message += "id = " + (string)id + "\n";
-	llOwnerSay(message);
+	//llOwnerSay(message);
 }
 
 response_dialog(integer sender_num, integer num, string str, key id)
@@ -284,7 +265,12 @@ response_dialog(integer sender_num, integer num, string str, key id)
 	link_debugged(sender_num, num, str, id);
     if(num == LINK_INTERFACE_DIALOG)
     {
-		//
+		//llOwnerSay("DEBUG:LINK_INTERFACE_DIALOG");
+		//llOwnerSay("DEBUG:" + llDumpList2String(data, PRIMITIZER_SEPERATOR));
+	}
+	else
+	{
+		request_dialog(sender_num, num, str, id);
 	}
 }
 
@@ -294,29 +280,62 @@ request_dialog(integer sender_num, integer num, string str, key id)
 	link_debugged(sender_num, num, str, id);
     if(num == LINK_INTERFACE_RESPONSE)
     {
-        llOwnerSay("DEBUG:LINK_INTERFACE_RESPONSE");
+        //llOwnerSay("DEBUG:LINK_INTERFACE_RESPONSE");
+        if(llGetSubString(str, 0, 6) == "SYSTEM_")
+        {
+            str = llDeleteSubString(str, 0, 6);
+			
+			if(str == "OPTIONS")
+			{
+				//llOwnerSay("Hello OPTIONS");
+			}
+			if(str == "HELP")
+			{
+				//llOwnerSay("HELP OPTIONS");
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(HELP_MENU_BUTTONS, BUTTON_NEXT), PRIMITIZER_CHANNEL);
+			}
+			//show_dialog(LINK_INTERFACE_DIALOG, SYSTEM_MENU_BUTTONS, SYSTEM_MENU_RETURNS, str, id);
+        }
+        else if(llGetSubString(str, 0, 4) == "HELP_")//help
+        {
+            str = llDeleteSubString(str, 0, 4);
+			
+			if(str == "WEBSITE")
+			{
+				llOwnerSay("id = " + (string)id + "");
+				llLoadURL(id, "Google Search", "https://google.com");
+			}
+			//show_dialog(LINK_INTERFACE_DIALOG, SYSTEM_MENU_BUTTONS, SYSTEM_MENU_RETURNS, str, id);
+        }
 	}
     else if(num == LINK_INTERFACE_CLEAR)
     {
-        llOwnerSay("DEBUG:LINK_INTERFACE_CLEAR");
+        //llOwnerSay("DEBUG:LINK_INTERFACE_CLEAR");
 		clear_dialog();
     }
     else if(num == LINK_INTERFACE_ADD)
     {
-		llOwnerSay("DEBUG:LINK_INTERFACE_ADD");
+		//llOwnerSay("DEBUG:LINK_INTERFACE_ADD");
 	}
     else if(num == LINK_INTERFACE_SHOW)
     {
-		llOwnerSay("DEBUG:LINK_INTERFACE_SHOW");
+		//llOwnerSay("DEBUG:LINK_INTERFACE_SHOW");
 	}
     else if(num == LINK_INTERFACE_SOUND)
     {
-		llOwnerSay("DEBUG:LINK_INTERFACE_SOUND");
+		//llOwnerSay("DEBUG:LINK_INTERFACE_SOUND");
+	}
+    else if(num == LINK_INTERFACE_DIALOG)
+    {
+		//llOwnerSay("DEBUG:LINK_INTERFACE_DIALOG");
+		//llOwnerSay("DEBUG:" + llDumpList2String(data, PRIMITIZER_SEPERATOR));
 	}
 }
-
+//show_dialog(LINK_INTERFACE_DIALOG, list buttons, list returns, string name, key id)
 integer show_dialog(integer link, list buttons, list returns, string name, key id)
 {
+	//llOwnerSay("DEBUG BUTTONS:" + llDumpList2String(buttons, PRIMITIZER_SEPERATOR));
+	//llOwnerSay("DEBUG RETURNS:" + llDumpList2String(returns, PRIMITIZER_SEPERATOR));
     if (name != "")
     {
         integer index = llListFindList(buttons, [name]);
@@ -340,24 +359,14 @@ integer show_dialog(integer link, list buttons, list returns, string name, key i
     }
 }
 
-state Redirect
-{
-    state_entry()
-    {
-        if(REDIRECT_STATE == "Dialog") state Dialog;
-        else if(REDIRECT_STATE == "Textbox") state Textbox;
-        else if(REDIRECT_STATE == "Numeric") state Numeric;
-        else state default;
-    }
-}
-
 default
 {
     state_entry()
     {
         // Listen On The Specified Channel And Display Dialog
-        // @TODO Remove This Later
-        PRIMITIZER_CHANNEL = create_dialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""));
+        // @TODO Remove This Later and move to link message
+        PRIMITIZER_HANDLE = llListen(PRIMITIZER_CHANNEL, "", llGetOwner(), "");
+		//llListenRemove(PRIMITIZER_HANDLE);
     }
 
     changed(integer change)
@@ -373,39 +382,41 @@ default
 
     link_message(integer sender_num, integer num, string str, key id)
     {
-        request_dialog(sender_num, num, str, id);
+        response_dialog(sender_num, num, str, id);
     }
 
     listen(integer channel, string name, key id, string message)
     {
-		if(channel == PRIMITIZER_CHANNEL)
+		if(channel == PRIMITIZER_CHANNEL) // Main Channel
 		{
 			if(message == BUTTON_NEXT)
 			{
-				// user clicked the BUTTON_NEXT option, so get the next
-				// cycle of menu items
-				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_NEXT));
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_NEXT), PRIMITIZER_CHANNEL);
 				//llSetTimerEvent(timerOut);
 			}
 			else if(message == BUTTON_BACK)
 			{
 				// user clicked the BUTTON_BACK option, so get the previous
 				// cycle of menu items
-				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_BACK));
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_BACK), PRIMITIZER_CHANNEL);
 				//llSetTimerEvent(timerOut);
 			}
 			else if(message == " ")
 			{
 				// user clicked the BUTTON_BACK option, so get the previous
 				// cycle of menu items
-				PRIMITIZER_CHANNEL = create_dialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""));
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""), PRIMITIZER_CHANNEL);
 				//llSetTimerEvent(timerOut);
 			}
 			else
 			{
 				integer index = llListFindList(SYSTEM_MENU_BUTTONS, [message]);
-				llMessageLinked(LINK_THIS, LINK_INTERFACE_RESPONSE, llList2String(SYSTEM_MENU_BUTTONS, index), id);
+				llMessageLinked(LINK_THIS, LINK_INTERFACE_RESPONSE, llList2String(SYSTEM_MENU_RETURNS, index), id);
 			}
+		}
+		if(channel == PRIMITIZER_CHANNEL)
+		{
+			//
 		}
     }
 
@@ -415,7 +426,7 @@ default
         if(llDetectedKey(0) == llGetOwner())
         {
             // display the dialog with the current menu cycle
-            PRIMITIZER_CHANNEL = create_dialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""));
+            llDialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""), PRIMITIZER_CHANNEL);
         }
     }
 }
