@@ -78,6 +78,9 @@ string BUTTON_OK = "OK ✔";
 // Previous Called Menu Index
 integer DIALOG_PREVIOUS_INDEX = 0;
 
+// The Maximum Number Of Buttons Interface Supports.
+integer DIALOG_MAXIMUM_BUTTONS = 150;
+
 // The Maximum Number Of Buttons That Can Be Displayed In The Dialog At One Time
 integer DIALOG_MAX_BUTTONS = 12;
 
@@ -280,8 +283,8 @@ request(integer sender_num, integer num, string str, key id)
     }
     else if(num == LINK_INTERFACE_ADD)
     {
-        integer DIALOG_DATA_COUNT = ((llGetListLength(data) - 2) / 2);
-        if(DIALOG_DATA_COUNT < 80)
+		integer DIALOG_FREE_MEMORY = ((llGetListLength(data) - 2) / 2);
+        if(DIALOG_FREE_MEMORY < DIALOG_MAXIMUM_BUTTONS)
         {
             DIALOG_MENU_MESSAGE = llList2String(data, 0);
             DIALOG_TIMEOUT = llList2Integer(data, 1);
