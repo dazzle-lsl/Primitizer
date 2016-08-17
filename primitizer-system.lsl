@@ -57,52 +57,24 @@ integer PRIMITIZER_CHANNEL;
 integer PRIMITIZER_HANDLE;
 
 // Define API Seperator For Parsing String Data
-string PRIMITIZER_SEPERATOR = "||";
+string DIALOG_SEPERATOR = "||";
 
-/*
-Scenes
-Gloves
-Options
-Functions
-Help
-
-*/
 // Define A List Containing All The Possible Menu Buttons
 
-list SYSTEM_MENU_BUTTONS = ["Options", "Functions", "Help"];
-list SYSTEM_MENU_RETURNS = ["SYSTEM_OPTIONS", "SYSTEM_FUNCTIONS", "SYSTEM_HELP"];
-// returns
-// commands
+//list DIALOG_MENU_BUTTONS = ["Options", "Functions", "Help"];
+//list DIALOG_MENU_RETURNS = ["SYSTEM_OPTIONS", "SYSTEM_FUNCTIONS", "SYSTEM_HELP"];
 
+// Define A List Containing All The Possible Menu Buttons
+list DIALOG_MENU_BUTTONS = [];
 
-/* Help Menu */
-list HELP_MENU_BUTTONS = ["Updates", "Read Me", "Contact", "Tutorial", "About", "Website"];
-list HELP_MENU_RETURNS = ["HELP_UPDATES","HELP_README","HELP_CONTACT", "HELP_Tutorial", "HELP_ABOUT", "HELP_WEBSITE"];
+// List Of Packed Menus Command, In Order Of DIALOG_MENU_ID_NAMES
+list DIALOG_MENU_COMMANDS = []; //DIALOG_MENU_MESSAGE||DIALOG_TIMEOUT||DIALOG_MENU_BUTTONS||DIALOG_MENU_RETURNS
 
-/*
-What would you like to do?
-tutorial
-* Updates
-* Read Me
-* Contact
-* Tutorial
-* About
-* Website
-*/
-/* Tutorial */
-list TUTORIAL_MENU_BUTTONS = ["Yes", "No", "Back"];
-list TUTORIAL_MENU_RETURNS = ["MENU_OPTIONS","MENU_FUNCTIONS","MENU_HELP"];
+// Define A List Containing All The Possible Menu Names
+list DIALOG_MENU_ID_NAMES = [];
 
-/*
-Would You Like To Enable Tutorial Tips?
-
-* Yes
-* No
-* Back
-*/
-/*
-
-*/
+// Define A List Containing All The Possible Menu Returns
+list DIALOG_MENU_RETURNS = [];
 
 // The Maximum Number Of Buttons That Can Be Displayed In The Dialog At One Time
 integer DIALOG_MAX_BUTTONS = 12;
@@ -113,35 +85,15 @@ integer DIALOG_ITEMS_COUNT = 0;
 // Define Cycle Number To Keep Track Of Which DIALOG_ITEMS_SUBLIST To Display
 integer DIALOG_CYCLE_INDEX = 0;
 
+// Previous Called Menu Index
+integer previous_index = 0;
+
 // Message To Be Shown With The Dialog
 string DIALOG_MENU_MESSAGE = "Pick a Number";
 
 // define tokens for the Prev and Next operations
 string BUTTON_BACK = "◄ Back";
 string BUTTON_NEXT = "Next ►";
-
-/*
-[07:48] Object: SYSTEM_MENU_BUTTONS:SUB_3_1#SUB_3_2#SUB_3_3#MAIN MENU#SUB_2#BUTTON_X
-[07:48] Object: DIALOG_MENU_RETURNS:3.1#3.2#3.3#MENU_MainMenu#MENU_SubMenu2#EXIT
-[07:48] Object: DIALOG_MENU_ID_NAMES:MainMenu#SubMenu1#SubMenu2#SubMenu3
-[07:48] Object: DIALOG_MENU_COMMANDS:Main Menu Dialog Message||30||BUTTON_1||MENU_SubMenu1||BUTTON_2||MENU_SubMenu2||BUTTON_3||MENU_SubMenu3||Debug||Debug||Textbox||Textbox||Numberbox||Numeric||BUTTON_X||EXIT#Sub Menu 1 Dialog Message||30||SUB_1_1||1.1||SUB_1_2||1.2||SUB_1_3||1.3||MAIN MENU||MENU_MainMenu||SUB_3||MENU_SubMenu3||BUTTON_X||EXIT#Sub Menu 2 Dialog Message||30||SUB_2_1||2.1||SUB_2_2||2.2||SUB_2_3||2.3||MAIN MENU||MENU_MainMenu||SUB_1||MENU_SubMenu1||BUTTON_X||EXIT#Sub Menu 3 Dialog Message||30||SUB_3_1||3.1||SUB_3_2||3.2||SUB_3_3||3.3||MAIN MENU||MENU_MainMenu||SUB_2||MENU_SubMenu2||BUTTON_X||EXIT
-
-*/
-
-//Inventory
-list inventory(integer type)
-{
-    list inventory = [];
-    integer index;
-    integer count = llGetInventoryNumber(type);
-    string  inventory_name;
-    for(index=0; index<count; index++)
-    {
-        inventory_name = llGetInventoryName(type, index);
-        inventory += [inventory_name];
-    }
-    return inventory;
-}
 
 list sort(list buttons)
 {
@@ -216,7 +168,7 @@ list pagination(list items, string direction)
         {
             // we can fill another dialog with PREV and NEXT buttons, so
             // this is just another regular cycle (with DIALOG_MAX_BUTTONS - 3) to ensure that
-            // the total number of items pulled from SYSTEM_MENU_BUTTONS is actually equal to
+            // the total number of items pulled from DIALOG_MENU_BUTTONS is actually equal to
             // (DIALOG_MAX_BUTTONS - 2)
             sublist = llList2List(items, start_index, start_index + (DIALOG_MAX_BUTTONS - 3));
 
@@ -241,12 +193,29 @@ list pagination(list items, string direction)
 
 clear_dialog()
 {
-    SYSTEM_MENU_BUTTONS = [];
+    DIALOG_MENU_BUTTONS = [];
+	DIALOG_MENU_ID_NAMES = [];
+	previous_index = 0;
 }
 
 add_dialog(string name, string message, list buttons, list returns, integer timeout)
 {
-	//
+    string packed_message = message + DIALOG_SEPERATOR + (string)timeout;
+
+    integer i;
+    integer count = llGetListLength(buttons);
+    for(i=0; i<count; i++)
+    {
+        packed_message += DIALOG_SEPERATOR + llList2String(buttons, i) + DIALOG_SEPERATOR + llList2String(returns, i);
+    }
+    integer index = llListFindList(DIALOG_MENU_ID_NAMES, [name]);
+    if(index >= 0) //!= -1
+        DIALOG_MENU_COMMANDS = llListReplaceList(DIALOG_MENU_COMMANDS, [packed_message], index, index);
+    else
+    {
+        DIALOG_MENU_ID_NAMES += [name];
+        DIALOG_MENU_COMMANDS += [packed_message];
+    }
 }
 
 // temp function for debug only
@@ -261,12 +230,12 @@ link_debugged(integer sender_num, integer num, string str, key id)
 
 response_dialog(integer sender_num, integer num, string str, key id)
 {
-	list data = llParseString2List(str, [PRIMITIZER_SEPERATOR], []);
+	list data = llParseString2List(str, [DIALOG_SEPERATOR], []);
 	link_debugged(sender_num, num, str, id);
     if(num == LINK_INTERFACE_DIALOG)
     {
 		//llOwnerSay("DEBUG:LINK_INTERFACE_DIALOG");
-		//llOwnerSay("DEBUG:" + llDumpList2String(data, PRIMITIZER_SEPERATOR));
+		//llOwnerSay("DEBUG:" + llDumpList2String(data, DIALOG_SEPERATOR));
 	}
 	else
 	{
@@ -276,7 +245,7 @@ response_dialog(integer sender_num, integer num, string str, key id)
 
 request_dialog(integer sender_num, integer num, string str, key id)
 {
-	list data = llParseString2List(str, [PRIMITIZER_SEPERATOR], []);
+	list data = llParseString2List(str, [DIALOG_SEPERATOR], []);
 	link_debugged(sender_num, num, str, id);
     if(num == LINK_INTERFACE_RESPONSE)
     {
@@ -284,28 +253,7 @@ request_dialog(integer sender_num, integer num, string str, key id)
         if(llGetSubString(str, 0, 6) == "SYSTEM_")
         {
             str = llDeleteSubString(str, 0, 6);
-			
-			if(str == "OPTIONS")
-			{
-				//llOwnerSay("Hello OPTIONS");
-			}
-			if(str == "HELP")
-			{
-				//llOwnerSay("HELP OPTIONS");
-				llDialog(id, DIALOG_MENU_MESSAGE, pagination(HELP_MENU_BUTTONS, BUTTON_NEXT), PRIMITIZER_CHANNEL);
-			}
-			//show_dialog(LINK_INTERFACE_DIALOG, SYSTEM_MENU_BUTTONS, SYSTEM_MENU_RETURNS, str, id);
-        }
-        else if(llGetSubString(str, 0, 4) == "HELP_")//help
-        {
-            str = llDeleteSubString(str, 0, 4);
-			
-			if(str == "WEBSITE")
-			{
-				llOwnerSay("id = " + (string)id + "");
-				llLoadURL(id, "Google Search", "https://google.com");
-			}
-			//show_dialog(LINK_INTERFACE_DIALOG, SYSTEM_MENU_BUTTONS, SYSTEM_MENU_RETURNS, str, id);
+			show_dialog(str, id);
         }
 	}
     else if(num == LINK_INTERFACE_CLEAR)
@@ -328,20 +276,48 @@ request_dialog(integer sender_num, integer num, string str, key id)
     else if(num == LINK_INTERFACE_DIALOG)
     {
 		//llOwnerSay("DEBUG:LINK_INTERFACE_DIALOG");
-		//llOwnerSay("DEBUG:" + llDumpList2String(data, PRIMITIZER_SEPERATOR));
+		//llOwnerSay("DEBUG:" + llDumpList2String(data, DIALOG_SEPERATOR));
 	}
 }
-//show_dialog(LINK_INTERFACE_DIALOG, list buttons, list returns, string name, key id)
-integer show_dialog(integer link, list buttons, list returns, string name, key id)
+
+integer IsValidScene(string name)
 {
-	//llOwnerSay("DEBUG BUTTONS:" + llDumpList2String(buttons, PRIMITIZER_SEPERATOR));
-	//llOwnerSay("DEBUG RETURNS:" + llDumpList2String(returns, PRIMITIZER_SEPERATOR));
+    if (~llListFindList(DIALOG_MENU_BUTTONS, [name]))
+        return TRUE;
+    return FALSE;
+}
+
+integer show_dialog(string name, key id)
+{
+    //if(llGetListLength(DIALOG_MENU_ID_NAMES) <= 0) return FALSE;
+
+    integer index;
+    if(name != "")
+    {
+        index = llListFindList(DIALOG_MENU_ID_NAMES, [name]);
+        if(index < 0) return FALSE;
+    }
+    else index = previous_index;
+
+    previous_index = index;
+
+    string packed_message = llList2String(DIALOG_MENU_COMMANDS, index);
+
+    //if(SOUND_UUID != NULL_KEY) llTriggerSound(SOUND_UUID, SOUND_VOLUME); 
+    llMessageLinked(LINK_THIS, LINK_INTERFACE_DIALOG, packed_message, id);
+    return TRUE;
+}
+
+/*
+integer show_dialog(string name, key id)
+{
     if (name != "")
     {
-        integer index = llListFindList(buttons, [name]);
+        integer index = llListFindList(DIALOG_MENU_BUTTONS, [name]);
+		llOwnerSay("index:" + (string)index);
         if (index != -1)
         {
-            llMessageLinked(LINK_THIS, link, llList2String(returns, index), id); //LINK_INTERFACE_DIALOG
+            llMessageLinked(LINK_THIS, LINK_INTERFACE_DIALOG, llList2String(DIALOG_MENU_RETURNS, index), id);
             return TRUE;
         }
         else
@@ -358,6 +334,7 @@ integer show_dialog(integer link, list buttons, list returns, string name, key i
         return FALSE;
     }
 }
+*/
 
 default
 {
@@ -391,27 +368,27 @@ default
 		{
 			if(message == BUTTON_NEXT)
 			{
-				llDialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_NEXT), PRIMITIZER_CHANNEL);
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(DIALOG_MENU_BUTTONS, BUTTON_NEXT), PRIMITIZER_CHANNEL);
 				//llSetTimerEvent(timerOut);
 			}
 			else if(message == BUTTON_BACK)
 			{
 				// user clicked the BUTTON_BACK option, so get the previous
 				// cycle of menu items
-				llDialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, BUTTON_BACK), PRIMITIZER_CHANNEL);
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(DIALOG_MENU_BUTTONS, BUTTON_BACK), PRIMITIZER_CHANNEL);
 				//llSetTimerEvent(timerOut);
 			}
 			else if(message == " ")
 			{
 				// user clicked the BUTTON_BACK option, so get the previous
 				// cycle of menu items
-				llDialog(id, DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""), PRIMITIZER_CHANNEL);
+				llDialog(id, DIALOG_MENU_MESSAGE, pagination(DIALOG_MENU_BUTTONS, ""), PRIMITIZER_CHANNEL);
 				//llSetTimerEvent(timerOut);
 			}
 			else
 			{
-				integer index = llListFindList(SYSTEM_MENU_BUTTONS, [message]);
-				llMessageLinked(LINK_THIS, LINK_INTERFACE_RESPONSE, llList2String(SYSTEM_MENU_RETURNS, index), id);
+				integer index = llListFindList(DIALOG_MENU_BUTTONS, [message]);
+				llMessageLinked(LINK_THIS, LINK_INTERFACE_RESPONSE, llList2String(DIALOG_MENU_RETURNS, index), id);
 			}
 		}
 		if(channel == PRIMITIZER_CHANNEL)
@@ -426,7 +403,7 @@ default
         if(llDetectedKey(0) == llGetOwner())
         {
             // display the dialog with the current menu cycle
-            llDialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(SYSTEM_MENU_BUTTONS, ""), PRIMITIZER_CHANNEL);
+            llDialog(llGetOwner(), DIALOG_MENU_MESSAGE, pagination(DIALOG_MENU_BUTTONS, ""), PRIMITIZER_CHANNEL);
         }
     }
 }
