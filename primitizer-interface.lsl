@@ -1,38 +1,38 @@
 // Add Menus To Interface API
-integer LINK_INTERFACE_ADD = 15002;
+integer LINK_INTERFACE_ADD = 0x3E8;
 
 // Cancel Dialog Request
-integer LINK_INTERFACE_CANCEL = 14012;
+integer LINK_INTERFACE_CANCEL = 0x7D0;
 
-// Cancel Is Hit For LINK_INTERFACE_NUMERIC
-integer LINK_INTERFACE_CANCELLED = 14006; // Message sent from LINK_INTERFACE_CANCEL to link message to be used in other scripts.
+// Cancel Button Is Triggered.
+integer LINK_INTERFACE_CANCELLED = 0xBB8; // Message sent from LINK_INTERFACE_CANCEL to link message to be used in other scripts.
 
 // Clear Dialog Request
-integer LINK_INTERFACE_CLEAR = 15001;
+integer LINK_INTERFACE_CLEAR = 0xFA0;
 
 // Display Dialog Interface
-integer LINK_INTERFACE_DIALOG = 14001;
+integer LINK_INTERFACE_DIALOG = 0x1388;
 
 // Dialog Not Found
-integer LINK_INTERFACE_NOT_FOUND = 15010;
+integer LINK_INTERFACE_NOT_FOUND = 0x1770;
 
 // Reshow Last Dialog Displayed
-integer LINK_INTERFACE_RESHOW = 14011;
+integer LINK_INTERFACE_RESHOW = 0x1B58;
 
-// A Button Is Hit, Or OK Is Hit For LINK_INTERFACE_NUMERIC
-integer LINK_INTERFACE_RESPONSE = 14002;
+// A Button Is Triggered, Or OK Is Triggered
+integer LINK_INTERFACE_RESPONSE = 0x1F40;
 
 // Display Dialog
-integer LINK_INTERFACE_SHOW = 15003;
+integer LINK_INTERFACE_SHOW = 0x2328;
 
 // Play Sound When Dialog Button Touched
-integer LINK_INTERFACE_SOUND = 15021;
+integer LINK_INTERFACE_SOUND = 0x2710;
 
 // Display Textbox Interface
-integer LINK_INTERFACE_TEXTBOX = 14007;
+integer LINK_INTERFACE_TEXTBOX = 0x2AF8;
 
 // No Button Is Hit, Or Ignore Is Hit
-integer LINK_INTERFACE_TIMEOUT = 14003;
+integer LINK_INTERFACE_TIMEOUT = 0x2EE0;
 
 // Define A Channel For Listening
 integer LISTEN_CHANNEL;
