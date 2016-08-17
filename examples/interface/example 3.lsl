@@ -119,11 +119,9 @@ list prefix(string prefix, string message)
     list inventory_prefix = [];
     integer index;
     integer count = llGetListLength(data);
-    string  prefix_name;
     for(index=0; index<count; index++)
     {
-        prefix_name = llList2String(data, index);
-        inventory_prefix += [prefix + prefix_name];
+        inventory_prefix += [prefix + (string)index];
     }
     return inventory_prefix;
 }
@@ -132,7 +130,7 @@ initialize()
 {
     TEXTURE_BUTTONS = inventory(INVENTORY_TEXTURE);
 
-    TEXTURE_RETURNS = prefix("TEXTURE_", llDumpList2String(inventory(INVENTORY_TEXTURE), DIALOG_SEPERATOR));
+    TEXTURE_RETURNS = prefix("tex_", llDumpList2String(inventory(INVENTORY_TEXTURE), DIALOG_SEPERATOR));
 
     dialog_clear();
         
@@ -167,10 +165,10 @@ default
         if(num == LINK_INTERFACE_RESPONSE)
         {
             llOwnerSay("LINK_INTERFACE_RESPONSE:" + str);
-            if(llGetSubString(str, 0, 7) == "TEXTURE_")
+            if(llGetSubString(str, 0, 3) == "tex_")
             {
                 llOwnerSay("INVENTORY_TEXTURE:" + str);
-                str = llDeleteSubString(str, 0, 7);
+                str = llDeleteSubString(str, 0, 3);
                 if(llGetInventoryType(str) == INVENTORY_TEXTURE) llSetTexture(str, ALL_SIDES);
             }
         }
