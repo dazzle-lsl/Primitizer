@@ -104,9 +104,9 @@ default{
 
             "Main Menu Dialog Message", // Dialog Messages
 
-            [ "BUTTON_1", "BUTTON_2", "BUTTON_3", "Debug", "Textbox", "BUTTON_X" ], // Dialog Buttons
+            [ "BUTTON_1", "BUTTON_2", "BUTTON_3", "Textbox", "BUTTON_X" ], // Dialog Buttons
 
-            [ "MENU_SubMenu1", "MENU_SubMenu2", "MENU_SubMenu3", "Debug", "Textbox", "EXIT" ], // Dialog Returns
+            [ "MENU_SubMenu1", "MENU_SubMenu2", "MENU_SubMenu3", "Textbox", "EXIT" ], // Dialog Returns
 
             DIALOG_TIMEOUT // Dialog Timeout
         );
@@ -164,11 +164,7 @@ default{
         else if(num == LINK_INTERFACE_RESPONSE)
         {
             llOwnerSay(str);
-            if(str == "Debug")
-            {
-                llMessageLinked(LINK_THIS, LINK_INTERFACE_DEBUG, "", llDetectedOwner(0));
-            }
-            else if(str == "Textbox")
+            if(str == "Textbox")
             {
                 // Add Dialog Textbox
                 add_textbox(id,
