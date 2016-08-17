@@ -40,6 +40,12 @@ string DIALOG_SEPERATOR = "||";
 // Dialog Time-Out Defined In Dialog Menu Creation.
 integer DIALOG_TIMEOUT = 30;
 
+// Dialog Texture Buttons List.
+list TEXTURE_BUTTONS = [];
+
+// Dialog Texture Returns List.
+list TEXTURE_RETURNS = [];
+
 // Packed Dialog Command
 string packed(string message, list buttons, list returns, integer timeout)
 {
@@ -92,14 +98,6 @@ dialog_clear()
 {
     llMessageLinked(LINK_THIS, LINK_INTERFACE_CLEAR, "", NULL_KEY);
 }
-// ********** END DIALOG FUNCTIONS **********
-
-string TEXTURE_DIALOG;
-
-list TEXTURE_BUTTONS = [];
-list TEXTURE_RETURNS = [];
-
-string INVENTORY_TEXTURE_NAME; // Get Texture Name
 
 list inventory(integer type)
 {
@@ -115,62 +113,70 @@ list inventory(integer type)
     return inventory;
 }
 
-initTextures()
+list prefix(string prefix, string message)
 {
-    llOwnerSay("Inventory change detected; re-initializing...");
+    list data = llParseStringKeepNulls(message, [DIALOG_SEPERATOR], []);
+    list inventory_prefix = [];
+    integer index;
+    integer count = llGetListLength(data);
+    string  prefix_name;
+    for(index=0; index<count; index++)
+    {
+        prefix_name = llList2String(data, index);
+        inventory_prefix += [prefix + prefix_name];
+    }
+    return inventory_prefix;
+}
+
+initialize()
+{
+    TEXTURE_BUTTONS = inventory(INVENTORY_TEXTURE);
+
+    TEXTURE_RETURNS = prefix("TEXTURE_", llDumpList2String(inventory(INVENTORY_TEXTURE), DIALOG_SEPERATOR));
 
     dialog_clear();
-
-    TEXTURE_DIALOG = "Click BACK/NEXT to change page.\n" +
-        "Click a texture button to choose.";
-
-    integer count = llGetInventoryNumber(INVENTORY_TEXTURE);
-    integer index;
-    for(index = 0; index<count; ++index)
-    {
-        INVENTORY_TEXTURE_NAME = llGetInventoryName(INVENTORY_TEXTURE, index);
         
-        llSay(0, "DEBUG TEXTURE_NAME:" + INVENTORY_TEXTURE_NAME);
-        TEXTURE_BUTTONS += [llGetSubString(INVENTORY_TEXTURE_NAME, 0, 12)];
-        TEXTURE_RETURNS += [INVENTORY_TEXTURE_NAME];
-		llSleep(0.1);
-    }
-        add_menu("MainMenu",
+    dialog_sound("18cf8177-a388-4c1c-90e7-e5750e83d750", 1.0);
+        
+    add_menu("MainMenu",
 
-            TEXTURE_DIALOG, // Dialog Messages
+        "Main Menu Dialog Message", // Dialog Messages
 
-            TEXTURE_BUTTONS, // Dialog Buttons
+        TEXTURE_BUTTONS, // Dialog Buttons
 
-            TEXTURE_RETURNS, // Dialog Returns
+        TEXTURE_RETURNS, // Dialog Returns
 
-            DIALOG_TIMEOUT // Dialog Timeout
-        );
-
-    llOwnerSay("Initializing completed.");
+        DIALOG_TIMEOUT // Dialog Timeout
+    );
 }
- 
+
 default
 {
     state_entry()
-	{
-        initTextures();
+    {
+        initialize();
     }
 
     changed(integer changes)
-	{
-        if(changes & CHANGED_INVENTORY) llResetScript();
+    {
+        if(changes & CHANGED_INVENTORY) initialize();
     }
 
     link_message(integer sender_num, integer num, string str, key id)
-	{
+    {
         if(num == LINK_INTERFACE_RESPONSE)
         {
             llOwnerSay("LINK_INTERFACE_RESPONSE:" + str);
-            if(llGetInventoryType(str) == INVENTORY_TEXTURE) llSetTexture(str, ALL_SIDES);
+            if(llGetSubString(str, 0, 7) == "TEXTURE_")
+            {
+                llOwnerSay("INVENTORY_TEXTURE:" + str);
+                str = llDeleteSubString(str, 0, 7);
+                if(llGetInventoryType(str) == INVENTORY_TEXTURE) llSetTexture(str, ALL_SIDES);
+            }
         }
     }
 
-    touch_start(integer num_detected)
+    touch_start(integer total_number)
     {
         dialog_show("MainMenu", llDetectedOwner(0));
     }
