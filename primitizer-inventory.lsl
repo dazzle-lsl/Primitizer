@@ -64,8 +64,6 @@ list cycle(list items, string direction)
 	// calculate the number of items available
 	DIALOG_ITEMS_COUNT = llGetListLength(items);
 
-	//DIALOG_MAX_PAGES = (DIALOG_ITEMS_COUNT / DIALOG_MAX_BUTTONS);
-
     DIALOG_LAST_PAGE = llCeil((float)DIALOG_ITEMS_COUNT / (float)DIALOG_MAX_BUTTONS);
 	llSay(DEBUG_CHANNEL, "DIALOG_LAST_PAGE:" + (string)DIALOG_LAST_PAGE );
     if (DIALOG_PAGE > DIALOG_LAST_PAGE)
@@ -158,6 +156,8 @@ default
 	state_entry()
 	{
 		DIALOG_PAGE = 1;
+		DIALOG_LAST_PAGE = llCeil((float)llGetListLength(TEXTURE_BUTTONS) / (float)DIALOG_MAX_BUTTONS);
+		
 		LISTEN_HANDLE = llListen(LISTEN_CHANNEL, "", llGetOwner(), "");
 		initialize();
 		//llListenRemove(LISTEN_HANDLE);
@@ -197,6 +197,7 @@ default
 	touch_start(integer total_number)
 	{
 		DIALOG_PAGE = 1;
+		DIALOG_LAST_PAGE = llCeil((float)llGetListLength(TEXTURE_BUTTONS) / (float)DIALOG_MAX_BUTTONS);
         string DIALOG_MESSAGE_PAGES = "(Page " + (string)DIALOG_PAGE + " Of " + (string)DIALOG_LAST_PAGE + ")\n" + DIALOG_MENU_MESSAGE;
 		if(llDetectedKey(0) == llGetOwner())
 		{
