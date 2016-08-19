@@ -284,7 +284,7 @@ request(integer sender_num, integer num, string str, key id)
     else if(num == LINK_INTERFACE_ADD)
     {
 		integer DIALOG_FREE_MEMORY = ((llGetListLength(data) - 2) / 2);
-        if(DIALOG_FREE_MEMORY < DIALOG_MAXIMUM_BUTTONS)
+        if(DIALOG_FREE_MEMORY < DIALOG_MAXIMUM_BUTTONS + 1)
         {
             DIALOG_MENU_MESSAGE = llList2String(data, 0);
             DIALOG_TIMEOUT = llList2Integer(data, 1);
@@ -317,7 +317,7 @@ default
 {
     state_entry()
     {
-		//PLACEHOLDER
+		llSetTimerEvent(0);
     }
 
     on_rez(integer start_param)
@@ -328,6 +328,7 @@ default
     timer()
     {
         llMessageLinked(LINK_THIS, LINK_INTERFACE_TIMEOUT, "", AVATAR_UUID);
+		state default;
     }
 
     link_message(integer sender_num, integer num, string str, key id)

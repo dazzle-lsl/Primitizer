@@ -1,3 +1,46 @@
+// Add Menus To Interface API
+integer LINK_INTERFACE_ADD = 0x3E8;
+
+// Cancel Dialog Request
+integer LINK_INTERFACE_CANCEL = 0x7D0;
+
+// Cancel Button Is Triggered.
+integer LINK_INTERFACE_CANCELLED = 0xBB8; // Message sent from LINK_INTERFACE_CANCEL to link message to be used in other scripts.
+
+// Clear Dialog Request
+integer LINK_INTERFACE_CLEAR = 0xFA0;
+
+// Display Dialog Interface
+integer LINK_INTERFACE_DIALOG = 0x1388;
+
+// Dialog Not Found
+integer LINK_INTERFACE_NOT_FOUND = 0x1770;
+
+// Reshow Last Dialog Displayed
+integer LINK_INTERFACE_RESHOW = 0x1B58;
+
+// A Button Is Triggered, Or OK Is Triggered
+integer LINK_INTERFACE_RESPONSE = 0x1F40;
+
+// Display Dialog
+integer LINK_INTERFACE_SHOW = 0x2328;
+
+// Play Sound When Dialog Button Touched
+integer LINK_INTERFACE_SOUND = 0x2710;
+
+// Display Textbox Interface
+integer LINK_INTERFACE_TEXTBOX = 0x2AF8;
+
+// No Button Is Hit, Or Ignore Is Hit
+integer LINK_INTERFACE_TIMEOUT = 0x2EE0;
+
+// Define API Seperator For Parsing String Data
+//string DIALOG_SEPERATOR = "||";
+//
+// Dialog Time-Out Defined In Dialog Menu Creation.
+//integer DIALOG_TIMEOUT = 30;
+
+
 // define a channel for listening
 integer LISTEN_CHANNEL = -3839;
 
